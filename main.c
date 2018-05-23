@@ -3,13 +3,11 @@
 #include <sifrpc.h>
 #include <loadfile.h>
 #include <fileio.h>
-#include <malloc.h>
 #include <libmc.h>
 #include <stdio.h>
 #include <string.h>
 #include "libpad.h"
 #include <debug.h>
-#include "malloc.h"
 
 
 //PAD VARIABLES
