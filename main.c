@@ -46,7 +46,12 @@ void initalise(void);
 #define TYPE_XMC
 
 static int mc_Type, mc_Free, mc_Format;
-
+	char *origappName = "Memory Card Formatter v.01 by 1UP\n";
+	char *appName = "Mass Format Utility v.01 by 1UP\n";
+	char *txtselectBtn = "Press SELECT to view information on the cards inserted.\n";
+	char *txtstartBtn = "Press START to Format all cards inserted.\n";
+	char *txttriangleBtn = "Press TRIANGLE to come back to the main screen.\n";
+	char *txtcrossBtn = "Press The Cross Button To Return to OSDSYS.\n";
 int main(int argc, char *argv[]) {
 
 	int ret;
@@ -96,6 +101,13 @@ int main(int argc, char *argv[]) {
 			//Format all memorycards
 			memoryCardCheckAndFormat(1);
 		}
+		
+		if(new_pad & PAD_CROSS)
+		{
+			scr_clear();
+			scr_printf(origappName);
+			gotoOSDSYS();
+		}
 
 	}
 
@@ -104,10 +116,11 @@ int main(int argc, char *argv[]) {
 
 void main_Text(void)
 {
-	scr_printf("Memory Card Formatter v.01 by 1UP\n");
-	scr_printf("Press SELECT to view information on the cards inserted.\n");
-	scr_printf("Press START to Format all cards inserted.\n");
-	scr_printf("Press TRIANGLE to come back to the main screen.\n");
+	scr_printf(origappName);
+	scr_printf(txtselectBtn);
+	scr_printf(txtstartBtn);
+	scr_printf(txttriangleBtn);
+	scr_printf(txtcrossBtn);
 }
 
 void initalise(void)
@@ -232,6 +245,7 @@ int memoryCardCheckAndFormat(int format)
 			scr_printf("Memory Card %d not detected!\n\n", portNumber);
 		}
 	}
+	main_Text();
 	return 0;
 }
 /////////////////////////////////////////////////////////////////////
@@ -371,4 +385,48 @@ void pad_wait_button(u32 button)
 		buttonStatts(0, 0);
 		if (new_pad & button) return;
 	}
+}
+
+void ResetIOP()
+{
+	SifIopReset("rom0:UDNL rom0:EELOADCNF", 0);
+	while ( SifIopSync()) ;
+	fioExit();
+	SifExitIopHeap();
+	SifLoadFileExit();
+	SifExitRpc();
+	SifExitCmd();
+	EI;
+	FlushCache(0);
+	FlushCache(2);
+
+	SifIopReset("rom0:UDNL rom0:EELOADCNF", 0);
+	while ( SifIopSync()) ;
+	fioExit();
+	SifExitIopHeap();
+	SifLoadFileExit();
+	SifExitRpc();
+	SifExitCmd();
+	EI;
+	FlushCache(0);
+	FlushCache(2);
+
+	SifInitRpc(0);
+	SifInitCmd();
+	SifLoadFileInit();
+	fioInit();
+	
+}
+
+void gotoOSDSYS()
+{
+	ResetIOP();
+	scr_printf("Exiting To OSDSYS..\n");
+	sleep(3);
+	SifLoadFileInit(); 
+	SifLoadModule("rom0:SIO2MAN", 0, NULL);
+	SifLoadModule("rom0:MCMAN", 0, NULL);
+	SifLoadModule("rom0:MCSERV", 0, NULL);
+	LoadExecPS2("rom0:OSDSYS", 0, NULL);
+	
 }
