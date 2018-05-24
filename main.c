@@ -214,7 +214,7 @@ int memoryCardCheckAndFormat(int format)
 			if (format == 1)
 			{
 				scr_printf("Formatting Memory Card %d.\n", portNumber);
-				mcFormat(0, 0);
+				mcFormat(portNumber, 0);
 				mcSync(0, NULL, &ret);
 
 				if (ret == 0)
