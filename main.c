@@ -389,32 +389,13 @@ void pad_wait_button(u32 button)
 
 void ResetIOP()
 {
-	SifIopReset("rom0:UDNL rom0:EELOADCNF", 0);
-	while ( SifIopSync()) ;
-	fioExit();
-	SifExitIopHeap();
-	SifLoadFileExit();
-	SifExitRpc();
-	SifExitCmd();
-	EI;
-	FlushCache(0);
-	FlushCache(2);
-
-	SifIopReset("rom0:UDNL rom0:EELOADCNF", 0);
-	while ( SifIopSync()) ;
-	fioExit();
-	SifExitIopHeap();
-	SifLoadFileExit();
-	SifExitRpc();
-	SifExitCmd();
-	EI;
-	FlushCache(0);
-	FlushCache(2);
-
-	SifInitRpc(0);
-	SifInitCmd();
-	SifLoadFileInit();
-	fioInit();
+	// Thanks To SP193 For Clarifying This
+	SifInitRpc(0);           //Initialize SIFRPC and SIFCMD. Although seemingly unimportant, this will update the addresses on the EE, which can prevent a crash from happening around the IOP reboot.
+	SifIopReset("", 0);      //Reboot IOP with default modules (empty command line)
+	while(!SifIopSync()){}   //Wait for IOP to finish rebooting.
+	SifInitRpc(0);           //Initialize SIFRPC and SIFCMD.
+	SifLoadFileInit();       //Initialize LOADFILE RPC.
+	fioInit();               //Initialize FILEIO RPC.
 	
 }
 
