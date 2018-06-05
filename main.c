@@ -1,5 +1,5 @@
 #include <tamtypes.h>
-#include <sbv_patches.h>
+//#include <sbv_patches.h>
 #include <kernel.h>
 #include <sifrpc.h>
 #include <loadfile.h>
@@ -79,7 +79,6 @@ int main(int argc, char *argv[]) {
 
 		if (new_pad & PAD_TRIANGLE)
 		{
-			closeMTAPports(); //In Case Multi-tap(s) are Connected or removed After the App has been started.
 			scr_clear();
 			main_Text();
 			
@@ -394,9 +393,11 @@ Meaning that Mtap Port 2 is Still Memory Card Port 0 (Logical Port 1)
 Logical Port Refers to the Actual Port on the PS2. (Ports 1 and 2)
 
 The ASCII Reference Art Below Is taken From the PS2DEV Multitap Library Sample AND SOME INFO HAS BEEN ADDED/CORRECTED.
+(The Sample had D and C backwards)
+See https://github.com/ps2dev/ps2sdk/tree/master/ee/rpc/multitap For More Info
 //////////////////////////////////////////////////////////////////////
 						
-				               [ Port 1, Slot 3 ]
+				     __________[ Port 1, Slot 3 ]
                                     /    _____[ Port 1, Slot 2 ]
  |------------|                     |   /
  |            |                   |-------|
@@ -429,13 +430,14 @@ mtapPortOpen(3); >> Memory Card Port 2 (Logical MC Port 2)
  1C: PORT = 0,SLOT = 2
  1D: PORT = 0,SLOT = 3
  
- 1A: PORT = 1,SLOT = 0
- 1B: PORT = 1,SLOT = 1
- 1C: PORT = 1,SLOT = 2
- 1D: PORT = 1,SLOT = 3
+ 2A: PORT = 1,SLOT = 0
+ 2B: PORT = 1,SLOT = 1
+ 2C: PORT = 1,SLOT = 2
+ 2D: PORT = 1,SLOT = 3
 ====================== 
  */
 {
+	closeMTAPports(); //In Case Multi-tap(s) are Connected or removed After the App has been started.
 	int rv;
 	mtapPortOpen(2);
 	mtapPortOpen(3);
