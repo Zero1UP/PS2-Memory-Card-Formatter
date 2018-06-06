@@ -49,6 +49,7 @@ static int mc_Type, mc_Free, mc_Format;
 	char *appName = "Mass Format Utility ";
 	char *appVer = "Version 0.2 ";
 	char *appAuthor = "Created By: 1UP & Based_Skid. Copyright \xa9 2018\n";
+	char *help = "Special thanks to SP193 for all the help! \n"
 	char *appNotice = "Notice: This May Not be Compatible With all PS2 Models!\n";
 	char *txtselectBtn = "-Press SELECT to view Memory Card Information.\n";
 	char *txtstartBtn = "-Press START to Format and Erase All Connected Memory Cards.\n";
@@ -115,6 +116,7 @@ void menu_Text(void)
 	scr_printf(appName);
 	scr_printf(appVer);
 	scr_printf(appAuthor);
+	scr_printf(help);
 	scr_printf(appNotice);
 	scr_printf(txtselectBtn);
 	scr_printf(txtstartBtn);
@@ -127,7 +129,7 @@ void menu_Text(void)
 void initialize(void)
 {
 
-	int rv,ret;
+	int ret;
 
 	SifInitRpc(0);
 	// init debug screen
@@ -160,7 +162,7 @@ void initialize(void)
 
 void LoadModules(void)
 {
-	int ret,a;
+	int ret;
 
 	ret = SifLoadModule("rom0:XSIO2MAN", 0, NULL);
 	if (ret < 0) {
@@ -227,7 +229,7 @@ int memoryCardCheckAndFormat(int format)
 			}
 			else 
 			{
-			scr_printf("Memory Card Port %d Slot %d not detected!\n", portNumber,slotNumber);
+				scr_printf("Memory Card Port %d Slot %d not detected!\n", portNumber,slotNumber);
 			}			
 		}
 	}
@@ -350,9 +352,9 @@ void checkPadConnected(void)
 	ret = padGetState(0, 0);
 	while ((ret != PAD_STATE_STABLE) && (ret != PAD_STATE_FINDCTP1)) {
 		if (ret == PAD_STATE_DISCONN) {
-#if defined DEBUG
-			scr_printf("	Pad(%d, %d) is disconnected\n", 0, 0);
-#endif
+			#if defined DEBUG
+				scr_printf("	Pad(%d, %d) is disconnected\n", 0, 0);
+			#endif
 		}
 		ret = padGetState(0, 0);
 	}
@@ -442,6 +444,7 @@ mtapPortOpen(3); >> Memory Card Port 2 (Logical MC Port 2)
 	int rv;
 	mtapPortOpen(2);
 	mtapPortOpen(3);
+
 	scr_printf("Multi-tap Status: \n");
 	//Checks For Mtap Connection on Physical Memory Card Slot 1
 	rv = mtapGetConnection(2); // Checks MTAP port 2 (Memory Card Port 1) For MTAP Connection
