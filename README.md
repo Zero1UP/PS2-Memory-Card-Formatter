@@ -5,7 +5,6 @@ Copyright 2018
 
 Licensed Under Academic Free License 3.0
 
-
 PS2 Powertool that will format All Connected Memory Cards.
 
 ## Features
@@ -33,3 +32,4 @@ This Program Was Built with The PS2DEV sdk and has utilized sample code from it 
 
 ## Warranty
 This Application Has No Warranty. The Creators of this app cannot be held Responsible for any damage
+
