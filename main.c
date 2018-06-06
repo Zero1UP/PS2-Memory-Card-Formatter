@@ -80,6 +80,7 @@ int main(int argc, char *argv[]) {
 
 		if (new_pad & PAD_TRIANGLE)
 		{
+			scr_clear();
 			menu_Text();
 		}
 
@@ -111,7 +112,6 @@ int main(int argc, char *argv[]) {
 
 void menu_Text(void)
 {
-	scr_clear();
 	scr_printf(appName);
 	scr_printf(appVer);
 	scr_printf(appAuthor);
@@ -194,7 +194,49 @@ void LoadModules(void)
 	}
 	
 }
+int memoryCardCheckAndFormat(int format)
+{
+	scr_clear();
+	scr_printf("The following cards are detected:\n\n");
 
+	int portNumber,slotNumber,ret;
+	for (portNumber =0; portNumber <2; portNumber++)
+	{
+		for (slotNumber =0; slotNumber<4; slotNumber++)
+		{
+			mcGetInfo(portNumber, slotNumber, &mc_Type, &mc_Free, &mc_Format);
+			mcSync(0, NULL, &ret);
+			if (ret >= -10)
+			{
+				scr_printf("Memory Card Port %d Slot %d detected!\n", portNumber,slotNumber);
+				scr_printf("Memory Card Port %d Slot %d %d kb free!\n\n", portNumber,slotNumber, mc_Free);
+				if (format == 1)
+				{
+					scr_printf("Formatting Memory Card %d.\n", portNumber);
+					mcFormat(portNumber, slotNumber);
+					mcSync(0, NULL, &ret);
+
+					if (ret == 0)
+					{
+						scr_printf("Memory Card %d formatted!\n\n", portNumber);
+					}
+					else
+					{
+						scr_printf("Memory Card %d failed to format!\n\n", portNumber);
+	
+					}
+				}
+			}
+			else 
+			{
+			scr_printf("Memory Card Port %d Slot %d not detected!\n\n", portNumber,slotNumber);
+			}			
+		}
+	}
+	menu_Text();
+	return 0;
+}
+/*
 int memoryCardCheckAndFormat(int format)
 {
 	scr_clear();
@@ -235,6 +277,7 @@ int memoryCardCheckAndFormat(int format)
 	menu_Text();
 	return 0;
 }
+*/
 /////////////////////////////////////////////////////////////////////
 //waitPadReady
 /////////////////////////////////////////////////////////////////////
