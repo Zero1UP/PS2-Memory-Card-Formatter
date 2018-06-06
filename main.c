@@ -47,13 +47,13 @@ static int mc_Type, mc_Free, mc_Format;
 
 //vars
 	char *appName = "Mass Format Utility ";
-	char *appVer = "Version 0.2\n";
+	char *appVer = "Version 0.2 ";
 	char *appAuthor = "Created By: 1UP & Based_Skid. Copyright \xa9 2018\n";
-	char *appNotice = "Notice: This App Uses X-Modules And May Not be Compatible With all Consoles!\n\n";
-	char *txtselectBtn = "-Press SELECT to view information on the cards inserted.\n";
-	char *txtstartBtn = "-Press START to Format all cards inserted.\n";
-	char *txttriangleBtn = "-Press TRIANGLE to Refresh Multi-tap Status and/or Clear Results.\n";
-	char *txtcrossBtn = "-Press The Cross Button To Return to OSDSYS.\n";
+	char *appNotice = "Notice: This May Not be Compatible With all PS2 Models!\n";
+	char *txtselectBtn = "-Press SELECT to view Memory Card Information.\n";
+	char *txtstartBtn = "-Press START to Format and Erase All Connected Memory Cards.\n";
+	char *txttriangleBtn = "-Press TRIANGLE to Refresh Status and Clear Output.\n";
+	char *txtcrossBtn = "-Press X To Exit and Reboot.\n";
 	char *osdmsg = "Exiting to OSDSYS\n";
 
 int main(int argc, char *argv[]) {
@@ -80,7 +80,6 @@ int main(int argc, char *argv[]) {
 
 		if (new_pad & PAD_TRIANGLE)
 		{
-			scr_clear();
 			menu_Text();
 		}
 
@@ -112,6 +111,7 @@ int main(int argc, char *argv[]) {
 
 void menu_Text(void)
 {
+	scr_clear();
 	scr_printf(appName);
 	scr_printf(appVer);
 	scr_printf(appAuthor);
@@ -158,8 +158,6 @@ void initialize(void)
 	}
 }
 
-
-
 void LoadModules(void)
 {
 	int ret,a;
@@ -167,37 +165,38 @@ void LoadModules(void)
 	ret = SifLoadModule("rom0:XSIO2MAN", 0, NULL);
 	if (ret < 0) {
 		printf("Failed to load module: XSIO2MAN");
-		failOSDSYS();
+		gotoOSDSYS(1);
 	}
 		
 	ret = SifLoadModule("rom0:XMTAPMAN", 0, NULL);
 	if (ret < 0) {
 		printf("Failed to load module: XMTAPMAN");
-		failOSDSYS();
+		gotoOSDSYS(1);
 	}
 	
 	ret = SifLoadModule("rom0:XPADMAN", 0, NULL);
 	if (ret < 0) {
 		printf("Failed to load module: XPADMAN");
-		failOSDSYS();
+		gotoOSDSYS(1);
 	}
 	ret = SifLoadModule("rom0:XMCMAN", 0, NULL);
 	if (ret < 0) {
 		printf("Failed to load module: XMCMAN");
-		failOSDSYS();
+		gotoOSDSYS(1);
 	}
 
 	ret = SifLoadModule("rom0:XMCSERV", 0, NULL);
 	if (ret < 0) {
 		printf("Failed to load module: XMCSERV");
-		failOSDSYS();
+		gotoOSDSYS(1);
 	}
 	
 }
+
 int memoryCardCheckAndFormat(int format)
 {
 	scr_clear();
-	scr_printf("The following cards are detected:\n\n");
+	//scr_printf("The following cards are detected:\n\n");
 
 	int portNumber,slotNumber,ret;
 	for (portNumber =0; portNumber <2; portNumber++)
@@ -208,76 +207,33 @@ int memoryCardCheckAndFormat(int format)
 			mcSync(0, NULL, &ret);
 			if (ret >= -10)
 			{
-				scr_printf("Memory Card Port %d Slot %d detected!\n", portNumber,slotNumber);
-				scr_printf("Memory Card Port %d Slot %d %d kb free!\n\n", portNumber,slotNumber, mc_Free);
+				scr_printf("Memory Card Port %d Slot %d detected! %d kb Free\n", portNumber,slotNumber,mc_Free);
 				if (format == 1)
 				{
-					scr_printf("Formatting Memory Card %d.\n", portNumber);
+					scr_printf("Formatting Memory Card Port %d Slot %d.\n", portNumber,slotNumber);
 					mcFormat(portNumber, slotNumber);
 					mcSync(0, NULL, &ret);
 
 					if (ret == 0)
 					{
-						scr_printf("Memory Card %d formatted!\n\n", portNumber);
+						scr_printf("Memory Card Port %d Slot %d formatted!\n", portNumber,slotNumber);
 					}
 					else
 					{
-						scr_printf("Memory Card %d failed to format!\n\n", portNumber);
+						scr_printf("Memory Card Port %d Slot %d failed to format!\n", portNumber,slotNumber);
 	
 					}
 				}
 			}
 			else 
 			{
-			scr_printf("Memory Card Port %d Slot %d not detected!\n\n", portNumber,slotNumber);
+			scr_printf("Memory Card Port %d Slot %d not detected!\n", portNumber,slotNumber);
 			}			
 		}
 	}
-	menu_Text();
+	scr_printf(txttriangleBtn);
 	return 0;
 }
-/*
-int memoryCardCheckAndFormat(int format)
-{
-	scr_clear();
-	scr_printf("The following cards are detected:\n\n");
-
-	int portNumber,ret;
-	for (portNumber = 0; portNumber < 2; portNumber += 1)
-	{
-		mcGetInfo(portNumber, 0, &mc_Type, &mc_Free, &mc_Format);
-		mcSync(0, NULL, &ret);
-
-		if (ret >= -10)
-		{
-			scr_printf("Memory Card %d detected!\n", portNumber);
-			scr_printf("Memory Card %d %d kb free!\n\n", portNumber, mc_Free);
-
-			if (format == 1)
-			{
-				scr_printf("Formatting Memory Card %d.\n", portNumber);
-				mcFormat(portNumber, 0);
-				mcSync(0, NULL, &ret);
-
-				if (ret == 0)
-				{
-					scr_printf("Memory Card %d formatted!\n\n", portNumber);
-				}
-				else
-				{
-					scr_printf("Memory Card %d failed to format!\n\n", portNumber);
-
-				}
-			}
-		}
-		else {
-			scr_printf("Memory Card %d not detected!\n\n", portNumber);
-		}
-	}
-	menu_Text();
-	return 0;
-}
-*/
 /////////////////////////////////////////////////////////////////////
 //waitPadReady
 /////////////////////////////////////////////////////////////////////
@@ -442,7 +398,6 @@ Logical Port Refers to the Actual Port on the PS2. (Ports 1 and 2)
 The ASCII Reference Art Below Is taken From the PS2DEV Multitap Library Sample AND SOME INFO HAS BEEN ADDED/CORRECTED.
 (The Sample had D and C backwards)
 See https://github.com/ps2dev/ps2sdk/tree/master/ee/rpc/multitap For More Info
-//////////////////////////////////////////////////////////////////////
 						
 				     __________[ Port 1, Slot 3 ]
                                     /    _____[ Port 1, Slot 2 ]
@@ -458,13 +413,12 @@ See https://github.com/ps2dev/ps2sdk/tree/master/ee/rpc/multitap For More Info
  |LogicalPort 1 |]---[ Port 0, Slot 0 ]
  |            |
  |------------|
-//////////////////////////////////////////////////////////////////////
 Some More Notes
 
 ACCORING TO THE MULTITAP SAMPLE YOU MUST USE XMODULES IN ORDER TO USE THE MULTITAP!
 
 ====Mtap Port Info====
-You DONT have to Open Mulitap Ports 1 & 2 if you are just looking to access the Memory Cards.
+You DONT have to Open Mulitap Ports 1 & 2 if you are just looking to access the Memory Cards. If you Wanted to Use Controller slots B,C,D on a Multi-tap Then you would need to open the Port
 mtapPortOpen(0); >> Memory Card Port 1 (Logical Controller Port 1)
 mtapPortOpen(1); >> Memory Card Port 2 (Logical Controller Port 2)
 mtapPortOpen(2); >> Memory Card Port 1 (Logical MC Port 1)
@@ -518,21 +472,15 @@ void closeMTAPports()
 	mtapPortClose(2);
 	mtapPortClose(3);
 }
-void gotoOSDSYS()
+void gotoOSDSYS(int failure)
 {
+	if (failure == 1)
+	{
+		scr_printf("An Application Failure Has Occurred.\n");
+	}
 	ResetIOP();
 	scr_printf(osdmsg);
 	sleep(3);
 	LoadExecPS2("rom0:OSDSYS", 0, NULL);
-	
-}
 
-void failOSDSYS()
-{
-	ResetIOP();
-	scr_clear();
-	scr_printf("An Application Failure Has Occurred.\n");
-	scr_printf(osdmsg);
-	sleep(5);
-	LoadExecPS2("rom0:OSDSYS", 0, NULL);
 }
