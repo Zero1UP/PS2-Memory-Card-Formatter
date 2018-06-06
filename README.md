@@ -9,8 +9,11 @@ Multi-tap Supported! (If You own an Offical Sony Multi-Tap you can format up to 
 
 ## Usage
 The Select Button Will Report what Memory Cards are connected and the Free Space in kilobytes (KB).
+
 The Start Button Will Start The Format Process on All Connected Memorycards. (No Final Confirmation.You have been Warned)
+
 The Triangle Button Clears The Info/Format Results and will also Refreshes the Multi-tap status.
+
 The Cross (X) Button Will Exit the Application and Return you to OSDSYS (soft reboot your ps2,)
 
 Notes: 
