@@ -1,4 +1,5 @@
 #include <tamtypes.h>
+//#include <sbv_patches.h>
 #include <kernel.h>
 #include <sifrpc.h>
 #include <loadfile.h>
@@ -8,8 +9,7 @@
 #include <string.h>
 #include "libpad.h"
 #include <debug.h>
-
-
+#include "libmtap.h"
 //PAD VARIABLES
 //check for multiple definitions
 #define DEBUG
@@ -36,45 +36,40 @@ u32 paddata;
 u32 old_pad;
 u32 new_pad;
 int port, slot;
-
 extern void readPad(void);
 
 void LoadModules(void);
-void initalise(void);
+void initialize(void);
 
-#define TYPE_MC
+
 #define TYPE_XMC
-
 static int mc_Type, mc_Free, mc_Format;
-	char *origappName = "Memory Card Formatter v.01 by 1UP\n";
-	char *appName = "Mass Format Utility v.01 by 1UP\n";
-	char *txtselectBtn = "Press SELECT to view information on the cards inserted.\n";
-	char *txtstartBtn = "Press START to Format all cards inserted.\n";
-	char *txttriangleBtn = "Press TRIANGLE to come back to the main screen.\n";
-	char *txtcrossBtn = "Press The Cross Button To Return to OSDSYS.\n";
+
+//vars
+	char *appName = "Mass Format Utility ";
+	char *appVer = "Version 0.2 ";
+	char *appAuthor = "Created By: 1UP & Based_Skid. Copyright \xa9 2018\n";
+	char *appNotice = "Notice: This May Not be Compatible With all PS2 Models!\n";
+	char *txtselectBtn = "-Press SELECT to view Memory Card Information.\n";
+	char *txtstartBtn = "-Press START to Format and Erase All Connected Memory Cards.\n";
+	char *txttriangleBtn = "-Press TRIANGLE to Refresh Status and Clear Output.\n";
+	char *txtcrossBtn = "-Press X To Exit and Reboot.\n";
+	char *osdmsg = "Exiting to OSDSYS\n";
+
 int main(int argc, char *argv[]) {
 
+	ResetIOP();
 	int ret;
+	
+	// initialize
+	initialize();
+	menu_Text();
 
-	// Initialise
-	initalise();
-	main_Text();
-
-
-
-	#ifdef TYPE_MC
-		if (mcInit(MC_TYPE_MC) < 0) 
-		{
-			printf("Failed to initialise memcard server!\n");
+	if (mcInit(MC_TYPE_XMC) < 0) 
+	{
+		printf("Failed to initialise memcard server!\n");
 			SleepThread();
-		}
-	#else
-		if (mcInit(MC_TYPE_XMC) < 0) 
-		{
-			printf("Failed to initialise memcard server!\n");
-			SleepThread();
-		}
-	#endif
+	}
 
 	while (1)
 	{
@@ -85,8 +80,7 @@ int main(int argc, char *argv[]) {
 
 		if (new_pad & PAD_TRIANGLE)
 		{
-			scr_clear();
-			main_Text();
+			menu_Text();
 		}
 
 		if (new_pad & PAD_SELECT)
@@ -105,34 +99,44 @@ int main(int argc, char *argv[]) {
 		if(new_pad & PAD_CROSS)
 		{
 			scr_clear();
-			scr_printf(origappName);
+			scr_printf(appName);
+			scr_printf(" \n");
 			gotoOSDSYS();
 		}
-
+		
 	}
 
 	return 0;
 }
 
-void main_Text(void)
+void menu_Text(void)
 {
-	scr_printf(origappName);
+	scr_clear();
+	scr_printf(appName);
+	scr_printf(appVer);
+	scr_printf(appAuthor);
+	scr_printf(appNotice);
 	scr_printf(txtselectBtn);
 	scr_printf(txtstartBtn);
 	scr_printf(txttriangleBtn);
 	scr_printf(txtcrossBtn);
+	scr_printf(" \n");
+	mtapConnect();
 }
 
-void initalise(void)
+void initialize(void)
 {
 
-	int ret;
+	int rv,ret;
 
 	SifInitRpc(0);
 	// init debug screen
 	init_scr();
 	// load all modules
 	LoadModules();
+	// Initialize The Multitap Library
+	mtapInit();
+	
 
 	// init pad
 	padInit(0);
@@ -154,98 +158,80 @@ void initalise(void)
 	}
 }
 
-
-
 void LoadModules(void)
 {
-	int ret;
+	int ret,a;
 
-#ifdef TYPE_MC
-	ret = SifLoadModule("rom0:SIO2MAN", 0, NULL);
-	if (ret < 0) {
-		printf("Failed to load module: SIO2MAN");
-		SleepThread();
-	}
-
-	ret = SifLoadModule("rom0:MCMAN", 0, NULL);
-	if (ret < 0) {
-		printf("Failed to load module: MCMAN");
-		SleepThread();
-	}
-
-	ret = SifLoadModule("rom0:MCSERV", 0, NULL);
-	if (ret < 0) {
-		printf("Failed to load module: MCSERV");
-		SleepThread();
-	}
-#else
 	ret = SifLoadModule("rom0:XSIO2MAN", 0, NULL);
 	if (ret < 0) {
-		printf("Failed to load module: SIO2MAN");
-		SleepThread();
+		printf("Failed to load module: XSIO2MAN");
+		gotoOSDSYS(1);
 	}
-
+		
+	ret = SifLoadModule("rom0:XMTAPMAN", 0, NULL);
+	if (ret < 0) {
+		printf("Failed to load module: XMTAPMAN");
+		gotoOSDSYS(1);
+	}
+	
+	ret = SifLoadModule("rom0:XPADMAN", 0, NULL);
+	if (ret < 0) {
+		printf("Failed to load module: XPADMAN");
+		gotoOSDSYS(1);
+	}
 	ret = SifLoadModule("rom0:XMCMAN", 0, NULL);
 	if (ret < 0) {
-		printf("Failed to load module: MCMAN");
-		SleepThread();
+		printf("Failed to load module: XMCMAN");
+		gotoOSDSYS(1);
 	}
 
 	ret = SifLoadModule("rom0:XMCSERV", 0, NULL);
 	if (ret < 0) {
-		printf("Failed to load module: MCSERV");
-		SleepThread();
+		printf("Failed to load module: XMCSERV");
+		gotoOSDSYS(1);
 	}
-#endif
-
-#ifdef ROM_PADMAN
-	ret = SifLoadModule("rom0:PADMAN", 0, NULL);
-#else
-	ret = SifLoadModule("rom0:XPADMAN", 0, NULL);
-#endif
-	if (ret < 0) {
-		SleepThread();
-	}
+	
 }
 
 int memoryCardCheckAndFormat(int format)
 {
 	scr_clear();
-	scr_printf("The following cards are detected:\n\n");
+	//scr_printf("The following cards are detected:\n\n");
 
-	int portNumber,ret;
-	for (portNumber = 0; portNumber < 2; portNumber += 1)
+	int portNumber,slotNumber,ret;
+	for (portNumber =0; portNumber <2; portNumber++)
 	{
-		mcGetInfo(portNumber, 0, &mc_Type, &mc_Free, &mc_Format);
-		mcSync(0, NULL, &ret);
-
-		if (ret >= -10)
+		for (slotNumber =0; slotNumber<4; slotNumber++)
 		{
-			scr_printf("Memory Card %d detected!\n", portNumber);
-			scr_printf("Memory Card %d %d kb free!\n\n", portNumber, mc_Free);
-
-			if (format == 1)
+			mcGetInfo(portNumber, slotNumber, &mc_Type, &mc_Free, &mc_Format);
+			mcSync(0, NULL, &ret);
+			if (ret >= -10)
 			{
-				scr_printf("Formatting Memory Card %d.\n", portNumber);
-				mcFormat(portNumber, 0);
-				mcSync(0, NULL, &ret);
-
-				if (ret == 0)
+				scr_printf("Memory Card Port %d Slot %d detected! %d kb Free\n", portNumber,slotNumber,mc_Free);
+				if (format == 1)
 				{
-					scr_printf("Memory Card %d formatted!\n\n", portNumber);
-				}
-				else
-				{
-					scr_printf("Memory Card %d failed to format!\n\n", portNumber);
+					scr_printf("Formatting Memory Card Port %d Slot %d.\n", portNumber,slotNumber);
+					mcFormat(portNumber, slotNumber);
+					mcSync(0, NULL, &ret);
 
+					if (ret == 0)
+					{
+						scr_printf("Memory Card Port %d Slot %d formatted!\n", portNumber,slotNumber);
+					}
+					else
+					{
+						scr_printf("Memory Card Port %d Slot %d failed to format!\n", portNumber,slotNumber);
+	
+					}
 				}
 			}
-		}
-		else {
-			scr_printf("Memory Card %d not detected!\n\n", portNumber);
+			else 
+			{
+			scr_printf("Memory Card Port %d Slot %d not detected!\n", portNumber,slotNumber);
+			}			
 		}
 	}
-	main_Text();
+	scr_printf(txttriangleBtn);
 	return 0;
 }
 /////////////////////////////////////////////////////////////////////
@@ -396,18 +382,105 @@ void ResetIOP()
 	SifInitRpc(0);           //Initialize SIFRPC and SIFCMD.
 	SifLoadFileInit();       //Initialize LOADFILE RPC.
 	fioInit();               //Initialize FILEIO RPC.
-	
 }
 
-void gotoOSDSYS()
+void mtapConnect()
+//////////////////////////////////////////////////////////////////////
+//                        Multi-tap Code                           //
+////////////////////////////////////////////////////////////////////
+/*
+
+MTAP Ports Shouldnt Be Confused With Controller or MC ports
+Meaning that Mtap Port 2 is Still Memory Card Port 0 (Logical Port 1)
+
+Logical Port Refers to the Actual Port on the PS2. (Ports 1 and 2)
+
+The ASCII Reference Art Below Is taken From the PS2DEV Multitap Library Sample AND SOME INFO HAS BEEN ADDED/CORRECTED.
+(The Sample had D and C backwards)
+See https://github.com/ps2dev/ps2sdk/tree/master/ee/rpc/multitap For More Info
+						
+				     __________[ Port 1, Slot 3 ]
+                                    /    _____[ Port 1, Slot 2 ]
+ |------------|                     |   /
+ |            |                   |-------|
+ |            |                   | D   C |
+ |     PS2    |          |--------|       | <- Multi-tap
+ |            |          |        | A   B |
+ |            |          |        |-------|
+ |            |          |          |   \_____ [ Port 1, Slot 1 ]
+ |LogicalPort 2 |]---------|          \__________[ Port 1, Slot 0 ]
+ |            |
+ |LogicalPort 1 |]---[ Port 0, Slot 0 ]
+ |            |
+ |------------|
+Some More Notes
+
+ACCORING TO THE MULTITAP SAMPLE YOU MUST USE XMODULES IN ORDER TO USE THE MULTITAP!
+
+====Mtap Port Info====
+You DONT have to Open Mulitap Ports 1 & 2 if you are just looking to access the Memory Cards. If you Wanted to Use Controller slots B,C,D on a Multi-tap Then you would need to open the Port
+mtapPortOpen(0); >> Memory Card Port 1 (Logical Controller Port 1)
+mtapPortOpen(1); >> Memory Card Port 2 (Logical Controller Port 2)
+mtapPortOpen(2); >> Memory Card Port 1 (Logical MC Port 1)
+mtapPortOpen(3); >> Memory Card Port 2 (Logical MC Port 2)
+======================
+
+====Port,Slot Info====
+ 1A: PORT = 0,SLOT = 0
+ 1B: PORT = 0,SLOT = 1
+ 1C: PORT = 0,SLOT = 2
+ 1D: PORT = 0,SLOT = 3
+ 
+ 2A: PORT = 1,SLOT = 0
+ 2B: PORT = 1,SLOT = 1
+ 2C: PORT = 1,SLOT = 2
+ 2D: PORT = 1,SLOT = 3
+====================== 
+ */
 {
-	ResetIOP();
-	scr_printf("Exiting To OSDSYS..\n");
-	sleep(3);
-	SifLoadFileInit(); 
-	SifLoadModule("rom0:SIO2MAN", 0, NULL);
-	SifLoadModule("rom0:MCMAN", 0, NULL);
-	SifLoadModule("rom0:MCSERV", 0, NULL);
-	LoadExecPS2("rom0:OSDSYS", 0, NULL);
+	closeMTAPports(); //In Case Multi-tap(s) are Connected or removed After the App has been started.
+	int rv;
+	mtapPortOpen(2);
+	mtapPortOpen(3);
+	scr_printf("Multi-tap Status: \n");
+	//Checks For Mtap Connection on Physical Memory Card Slot 1
+	rv = mtapGetConnection(2); // Checks MTAP port 2 (Memory Card Port 1) For MTAP Connection
 	
+	if(rv == 1)
+        scr_printf("Memory Card Port 1: Multi-tap Detected! \n");
+    else
+    {
+        scr_printf("Memory Card Port 1: Multi-tap is Not Connected. \n");
+        mtapPortClose(2); //Closes The Multitap Port if The Multitap Is Not Present
+    }
+	
+	
+	//Checks For Mtap Connection on Physical Memory Card Slot 2
+	rv = mtapGetConnection(3); // Checks MTAP port 3 (Memory Card Port 2) For MTAP Connection
+    
+	if(rv == 1)
+        scr_printf("Memory Card Port 2: Multi-tap Detected! \n");
+    else
+    {
+        scr_printf("Memory Card Port 2: Multi-tap is Not Connected. \n");
+        mtapPortClose(3);
+	}
+}
+// Closes MTAP Ports 2 and 3
+void closeMTAPports()
+{
+	mtapPortClose(2);
+	mtapPortClose(3);
+}
+void gotoOSDSYS(int failure)
+{
+	if (failure == 1)
+	{
+		scr_printf("An Application Failure Has Occurred.\n");
+	}
+	ResetIOP();
+	scr_printf(osdmsg);
+	sleep(3);
+	LoadExecPS2("rom0:OSDSYS", 0, NULL);
+
 }
