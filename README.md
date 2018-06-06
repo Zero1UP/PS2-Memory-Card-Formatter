@@ -3,6 +3,9 @@ Created by: 1UP & Based_Skid
 
 Copyright 2018
 
+Licensed Under Academic Free License 3.0
+
+
 PS2 Powertool that will format All Connected Memory Cards.
 
 ## Features
@@ -26,7 +29,7 @@ The App Will automatically Recognize a Multi-tap if it is connected when it is l
 This App May Not Be Compatible With Some Models of the PS2.
 
 ## Notice
-This Program Was Built with The PS2DEV sdk https://github.com/ps2dev/ps2sdk
+This Program Was Built with The PS2DEV sdk and has utilized sample code from it https://github.com/ps2dev/ps2sdk
 
 ## Warranty
 This Application Has No Warranty. The Creators of this app cannot be held Responsible for any damage
