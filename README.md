@@ -1,6 +1,8 @@
 # Mass Format utility
 Created by: 1UP & Based_Skid 
+
 Copyright 2018
+
 PS2 Powertool that will format All Connected Memory Cards.
 
 ## Features
