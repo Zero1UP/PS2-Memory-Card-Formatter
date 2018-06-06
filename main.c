@@ -54,6 +54,7 @@ static int mc_Type, mc_Free, mc_Format;
 	char *txtstartBtn = "-Press START to Format all cards inserted.\n";
 	char *txttriangleBtn = "-Press TRIANGLE to Refresh Multi-tap Status and/or Clear Results.\n";
 	char *txtcrossBtn = "-Press The Cross Button To Return to OSDSYS.\n";
+	char *osdmsg = "Exiting to OSDSYS\n";
 
 int main(int argc, char *argv[]) {
 
@@ -62,7 +63,7 @@ int main(int argc, char *argv[]) {
 	
 	// initialize
 	initialize();
-	main_Text();
+	menu_Text();
 
 	if (mcInit(MC_TYPE_XMC) < 0) 
 	{
@@ -79,9 +80,7 @@ int main(int argc, char *argv[]) {
 
 		if (new_pad & PAD_TRIANGLE)
 		{
-			scr_clear();
-			main_Text();
-			
+			menu_Text();
 		}
 
 		if (new_pad & PAD_SELECT)
@@ -101,6 +100,7 @@ int main(int argc, char *argv[]) {
 		{
 			scr_clear();
 			scr_printf(appName);
+			scr_printf(" \n");
 			gotoOSDSYS();
 		}
 		
@@ -109,8 +109,9 @@ int main(int argc, char *argv[]) {
 	return 0;
 }
 
-void main_Text(void)
+void menu_Text(void)
 {
+	scr_clear();
 	scr_printf(appName);
 	scr_printf(appVer);
 	scr_printf(appAuthor);
@@ -165,28 +166,31 @@ void LoadModules(void)
 
 	ret = SifLoadModule("rom0:XSIO2MAN", 0, NULL);
 	if (ret < 0) {
-		printf("Failed to load module: SIO2MAN");
-		SleepThread();
+		printf("Failed to load module: XSIO2MAN");
+		failOSDSYS();
 	}
 		
 	ret = SifLoadModule("rom0:XMTAPMAN", 0, NULL);
 	if (ret < 0) {
-		printf("Failed to load module: MCSERV");
-		SleepThread();
+		printf("Failed to load module: XMTAPMAN");
+		failOSDSYS();
 	}
 	
 	ret = SifLoadModule("rom0:XPADMAN", 0, NULL);
-
+	if (ret < 0) {
+		printf("Failed to load module: XPADMAN");
+		failOSDSYS();
+	}
 	ret = SifLoadModule("rom0:XMCMAN", 0, NULL);
 	if (ret < 0) {
-		printf("Failed to load module: MCMAN");
-		SleepThread();
+		printf("Failed to load module: XMCMAN");
+		failOSDSYS();
 	}
 
 	ret = SifLoadModule("rom0:XMCSERV", 0, NULL);
 	if (ret < 0) {
-		printf("Failed to load module: MCSERV");
-		SleepThread();
+		printf("Failed to load module: XMCSERV");
+		failOSDSYS();
 	}
 	
 }
@@ -228,7 +232,7 @@ int memoryCardCheckAndFormat(int format)
 			scr_printf("Memory Card %d not detected!\n\n", portNumber);
 		}
 	}
-	main_Text();
+	menu_Text();
 	return 0;
 }
 /////////////////////////////////////////////////////////////////////
@@ -474,8 +478,18 @@ void closeMTAPports()
 void gotoOSDSYS()
 {
 	ResetIOP();
-	scr_printf("Exiting To OSDSYS..\n");
+	scr_printf(osdmsg);
 	sleep(3);
 	LoadExecPS2("rom0:OSDSYS", 0, NULL);
 	
+}
+
+void failOSDSYS()
+{
+	ResetIOP();
+	scr_clear();
+	scr_printf("An Application Failure Has Occurred.\n");
+	scr_printf(osdmsg);
+	sleep(5);
+	LoadExecPS2("rom0:OSDSYS", 0, NULL);
 }
