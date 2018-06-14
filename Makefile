@@ -12,8 +12,8 @@ all: $(EE_BIN)
 
 # Un-Comment to Enable Compression of the ELF. you will need ps2packer in the project dir
 #all: $(EE_BIN)
-	ps2_packer/ps2_packer -p zlib $(EE_BIN) $(EE_BIN_PACKED)
-	cp -f --remove-destination $(EE_BIN_PACKED) $(EE_BIN_DIR)/$(EE_BIN)
+#	ps2_packer/ps2_packer -p zlib $(EE_BIN) $(EE_BIN_PACKED)
+#	cp -f --remove-destination $(EE_BIN_PACKED) $(EE_BIN_DIR)/$(EE_BIN)
 
 
 clean:
