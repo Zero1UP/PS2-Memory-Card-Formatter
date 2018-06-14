@@ -1,5 +1,6 @@
 #include <tamtypes.h>
-//#include <sbv_patches.h>
+#include <errno.h>
+#include <sbv_patches.h>
 #include <kernel.h>
 #include <sifrpc.h>
 #include <loadfile.h>
@@ -10,6 +11,11 @@
 #include "libpad.h"
 #include <debug.h>
 #include "libmtap.h"
+#include <libpwroff.h>
+#include <iopcontrol.h>
+#include <iopheap.h>
+
+
 //PAD VARIABLES
 //check for multiple definitions
 #define DEBUG
@@ -25,6 +31,11 @@
 #if !defined(ROM_PADMAN) && !defined(NEW_PADMAN)
 #error ROM_PADMAN or NEW_PADMAN must be defined!
 #endif
+
+
+extern unsigned char poweroff_irx;
+extern unsigned int size_poweroff_irx;
+
 //pad buffer
 static char padBuf[256] __attribute__((aligned(64)));
 //rumblers
@@ -40,21 +51,22 @@ extern void readPad(void);
 
 void LoadModules(void);
 void initialize(void);
-
+int LoadIRX();
 
 #define TYPE_XMC
 static int mc_Type, mc_Free, mc_Format;
 
 //vars
 	char *appName = "Mass Format Utility ";
-	char *appVer = "Version 0.2 ";
+	char *appVer = "Version 0.3 ";
 	char *appAuthor = "Created By: 1UP & Based_Skid. Copyright \xa9 2018\n";
 	char *help = "Special thanks to SP193 for all the help! \n";
 	char *appNotice = "Notice: This May Not be Compatible With all PS2 Models!\n";
 	char *txtselectBtn = "-Press SELECT to view Memory Card Information.\n";
 	char *txtstartBtn = "-Press START to Format and Erase All Connected Memory Cards.\n";
 	char *txttriangleBtn = "-Press TRIANGLE to Refresh Status and Clear Output.\n";
-	char *txtcrossBtn = "-Press X To Exit and Reboot.\n";
+	char *txtsqrBtn = "-Press Square to Poweroff the console.\n";
+	char *txtcrossBtn = "-Press X to Exit and Reboot.\n";
 	char *osdmsg = "Exiting to OSDSYS\n";
 
 int main(int argc, char *argv[]) {
@@ -64,6 +76,8 @@ int main(int argc, char *argv[]) {
 	
 	// initialize
 	initialize();
+	// "Load IRX Modules"
+	LoadIRX();
 	menu_Text();
 
 	if (mcInit(MC_TYPE_XMC) < 0) 
@@ -105,8 +119,14 @@ int main(int argc, char *argv[]) {
 			gotoOSDSYS();
 		}
 		
+		if(new_pad & PAD_SQUARE) 
+		{
+			// Initialize Poweroff Library
+			poweroffInit();
+			// Power Off PS2
+			poweroffShutdown();
+		}
 	}
-
 	return 0;
 }
 
@@ -122,6 +142,7 @@ void menu_Text(void)
 	scr_printf(txtstartBtn);
 	scr_printf(txttriangleBtn);
 	scr_printf(txtcrossBtn);
+	scr_printf(txtsqrBtn);
 	scr_printf(" \n");
 	mtapConnect();
 }
@@ -160,10 +181,31 @@ void initialize(void)
 	}
 }
 
+int LoadIRX()
+{
+	//SifLoadFileInit();
+	scr_printf("loading...\n");
+	int a;
+	sbv_patch_enable_lmb();
+	sbv_patch_disable_prefix_check();
+	printf("	Beginning initialization!\n");
+
+	a = SifExecModuleBuffer(&poweroff_irx, size_poweroff_irx, 0, NULL, &a);
+	if (a < 0 )
+	{
+        scr_printf("	Could not load POWEROFF.IRX! %d\n", a);
+	return -1;
+	}
+
+	printf("	Loaded POWEROFF.IRX!\n");
+	return 0;
+
+}
+
 void LoadModules(void)
 {
 	int ret;
-
+	
 	ret = SifLoadModule("rom0:XSIO2MAN", 0, NULL);
 	if (ret < 0) {
 		printf("Failed to load module: XSIO2MAN");
@@ -198,7 +240,6 @@ void LoadModules(void)
 int memoryCardCheckAndFormat(int format)
 {
 	scr_clear();
-	//scr_printf("The following cards are detected:\n\n");
 
 	int portNumber,slotNumber,ret;
 	for (portNumber =0; portNumber <2; portNumber++)
@@ -322,7 +363,6 @@ static int initializePad(int port, int slot)
 		padSetActAlign(port, slot, actAlign);
 	}
 	else {
-		//printf("Did not find any actuators.\n");
 	}
 	return 1;
 }
@@ -359,7 +399,6 @@ void checkPadConnected(void)
 		ret = padGetState(0, 0);
 	}
 	if (i == 1) {
-		//scr_printf("	Pad: OK!\n");
 	}
 }
 
@@ -385,6 +424,7 @@ void ResetIOP()
 	SifLoadFileInit();       //Initialize LOADFILE RPC.
 	fioInit();               //Initialize FILEIO RPC.
 }
+
 
 void mtapConnect()
 //////////////////////////////////////////////////////////////////////
