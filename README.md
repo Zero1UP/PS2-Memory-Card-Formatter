@@ -18,6 +18,8 @@ The Start Button Will Start The Format Process on All Connected Memorycards. (No
 
 The Triangle Button Clears The Info/Format Results and will also Refreshes the Multi-tap status.
 
+The Square Button Will Power Off The PS2
+
 The Cross (X) Button Will Exit the Application and Return you to OSDSYS (soft reboot your ps2,)
 
 Notes: 
