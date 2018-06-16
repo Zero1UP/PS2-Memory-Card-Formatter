@@ -58,7 +58,7 @@ static int mc_Type, mc_Free, mc_Format;
 
 //vars
 	char *appName = "Mass Format Utility ";
-	char *appVer = "Version 0.3 ";
+	char *appVer = "Version 0.4 ";
 	char *appAuthor = "Created By: 1UP & Based_Skid. Copyright \xa9 2018\n";
 	char *help = "Special thanks to SP193 for all the help! \n";
 	char *appNotice = "Notice: This May Not be Compatible With all PS2 Models!\n";
@@ -82,8 +82,8 @@ int main(int argc, char *argv[]) {
 
 	if (mcInit(MC_TYPE_XMC) < 0) 
 	{
-		printf("Failed to initialise memcard server!\n");
-			SleepThread();
+		printf("Failed to Init libmc\n");
+		gotoOSDSYS(1);
 	}
 
 	while (1)
@@ -183,21 +183,19 @@ void initialize(void)
 
 int LoadIRX()
 {
-	//SifLoadFileInit();
-	scr_printf("loading...\n");
 	int a;
 	sbv_patch_enable_lmb();
 	sbv_patch_disable_prefix_check();
-	printf("	Beginning initialization!\n");
+	printf(" Loading IRX!\n");
 
 	a = SifExecModuleBuffer(&poweroff_irx, size_poweroff_irx, 0, NULL, &a);
 	if (a < 0 )
 	{
-        scr_printf("	Could not load POWEROFF.IRX! %d\n", a);
+        scr_printf(" Could not load POWEROFF.IRX! %d\n", a);
 	return -1;
 	}
 
-	printf("	Loaded POWEROFF.IRX!\n");
+	printf(" Loaded POWEROFF.IRX!\n");
 	return 0;
 
 }
@@ -240,38 +238,143 @@ void LoadModules(void)
 int memoryCardCheckAndFormat(int format)
 {
 	scr_clear();
-
-	int portNumber,slotNumber,ret;
-	for (portNumber =0; portNumber <2; portNumber++)
-	{
-		for (slotNumber =0; slotNumber<4; slotNumber++)
-		{
-			mcGetInfo(portNumber, slotNumber, &mc_Type, &mc_Free, &mc_Format);
-			mcSync(0, NULL, &ret);
-			if (ret >= -10)
-			{
-				scr_printf("Memory Card Port %d Slot %d detected! %d kb Free\n", portNumber,slotNumber,mc_Free);
-				if (format == 1)
-				{
-					scr_printf("Formatting Memory Card Port %d Slot %d.\n", portNumber,slotNumber);
-					mcFormat(portNumber, slotNumber);
-					mcSync(0, NULL, &ret);
-
-					if (ret == 0)
-					{
-						scr_printf("Memory Card Port %d Slot %d formatted!\n", portNumber,slotNumber);
-					}
-					else
-					{
-						scr_printf("Memory Card Port %d Slot %d failed to format!\n", portNumber,slotNumber);
 	
+	int rv,portNumber,slotNumber,ret;
+	rv = mtapGetConnection(2);
+	if(rv == 1) 
+	{
+		for (portNumber =0; portNumber <1; portNumber++)
+		{
+			for (slotNumber =0; slotNumber<4; slotNumber++)
+			{
+				mcGetInfo(portNumber, slotNumber, &mc_Type, &mc_Free, &mc_Format);
+				mcSync(0, NULL, &ret);
+				if (ret >= -10)
+				{
+					if (format == 0)
+					{
+						scr_printf("Memory Card Port %d Slot %d detected! %d kb Free\n\n", portNumber,slotNumber,mc_Free);
+					}
+					if (format == 1)
+					{
+						scr_printf("Formatting Memory Card Port %d Slot %d.\n", portNumber,slotNumber);
+						mcFormat(portNumber, slotNumber);
+						mcSync(0, NULL, &ret);
+						if (ret == 0)
+						{
+							scr_printf("Memory Card Port %d Slot %d formatted!\n\n", portNumber,slotNumber);
+						}
+						else
+						{
+							scr_printf("Memory Card Port %d Slot %d failed to format!\n\n", portNumber,slotNumber);
+		
+						}
 					}
 				}
+				else 
+				{
+					scr_printf("Memory Card Port %d Slot %d not detected!\n\n", portNumber,slotNumber);
+				}			
 			}
-			else 
+		}
+	}
+	else
+	{
+		mcGetInfo(0, 0, &mc_Type, &mc_Free, &mc_Format);
+		mcSync(0, NULL, &ret);
+		if (ret >= -10)
+		{
+			if (format == 0)
 			{
-				scr_printf("Memory Card Port %d Slot %d not detected!\n", portNumber,slotNumber);
-			}			
+				scr_printf("Memory Card Port 0 detected! %d kb Free\n\n",mc_Free);
+			}
+			if (format == 1)
+			{
+				scr_printf("Formatting Memory Card Port 0 \n");
+				mcFormat(0, 0);
+				mcSync(0, NULL, &ret);
+				if (ret == 0)
+				{
+					scr_printf("Memory Card Port 0 Formatted!\n");
+				}
+				else
+				{
+					scr_printf("Memory Card Port 0 failed to format!\n\n");
+				}
+			}
+		}
+		else
+		{
+			scr_printf("Memory Card Port 0 not detected!\n\n");
+		}
+	}
+	//Logical Port 2
+	rv = mtapGetConnection(3);
+	if(rv == 1) 
+	{
+		for (portNumber =1; portNumber <2; portNumber++)
+		{
+			for (slotNumber =0; slotNumber<4; slotNumber++)
+			{
+				mcGetInfo(portNumber, slotNumber, &mc_Type, &mc_Free, &mc_Format);
+				mcSync(0, NULL, &ret);
+				if (ret >= -10)
+				{
+					if (format == 0)
+					{
+						scr_printf("Memory Card Port %d Slot %d detected! %d kb Free\n\n", portNumber,slotNumber,mc_Free);
+					}
+					if (format == 1)
+					{
+						scr_printf("Formatting Memory Card Port %d Slot %d.\n", portNumber,slotNumber);
+						mcFormat(portNumber, slotNumber);
+						mcSync(0, NULL, &ret);
+						if (ret == 0)
+						{
+							scr_printf("Memory Card Port %d Slot %d formatted!\n\n", portNumber,slotNumber);
+						}
+						else
+						{
+							scr_printf("Memory Card Port %d Slot %d failed to format!\n\n", portNumber,slotNumber);
+		
+						}
+					}
+				}
+				else 
+				{
+					scr_printf("Memory Card Port %d Slot %d not detected!\n\n", portNumber,slotNumber);
+				}			
+			}
+		}
+	}
+	else
+	{
+		mcGetInfo(1, 0, &mc_Type, &mc_Free, &mc_Format);
+		mcSync(0, NULL, &ret);
+		if (ret >= -10)
+		{
+			if (format == 0)
+			{
+				scr_printf("Memory Card Port 1 detected! %d kb Free\n\n",mc_Free);
+			}
+			if (format == 1)
+			{
+				scr_printf("Formatting Memory Card Port 1 \n");
+				mcFormat(1, 0);
+				mcSync(0, NULL, &ret);
+				if (ret == 0)
+				{
+					scr_printf("Memory Card Port 1 Formatted!\n");
+				}
+				else
+				{
+					scr_printf("Memory Card Port 1 failed to format!\n\n");
+				}
+			}
+		}
+		else
+		{
+			scr_printf("Memory Card Port 1 not detected!\n\n");
 		}
 	}
 	scr_printf(txttriangleBtn);
@@ -393,7 +496,7 @@ void checkPadConnected(void)
 	while ((ret != PAD_STATE_STABLE) && (ret != PAD_STATE_FINDCTP1)) {
 		if (ret == PAD_STATE_DISCONN) {
 			#if defined DEBUG
-				scr_printf("	Pad(%d, %d) is disconnected\n", 0, 0);
+				scr_printf("Controller(%d, %d) is disconnected\n", 0, 0);
 			#endif
 		}
 		ret = padGetState(0, 0);
@@ -490,23 +593,27 @@ mtapPortOpen(3); >> Memory Card Port 2 (Logical MC Port 2)
 	rv = mtapGetConnection(2); // Checks MTAP port 2 (Memory Card Port 1) For MTAP Connection
 	
 	if(rv == 1)
-        scr_printf("Memory Card Port 1: Multi-tap Detected! \n");
-    else
-    {
-        scr_printf("Memory Card Port 1: Multi-tap is Not Connected. \n");
-        mtapPortClose(2); //Closes The Multitap Port if The Multitap Is Not Present
-    }
+	{
+		scr_printf("Memory Card Port 1: Multi-tap Detected! \n");
+	}
+	else
+	{
+		scr_printf("Memory Card Port 1: Multi-tap is Not Connected. \n");
+		mtapPortClose(2); //Closes The Multitap Port if The Multitap Is Not Present
+	}
 	
 	
 	//Checks For Mtap Connection on Physical Memory Card Slot 2
 	rv = mtapGetConnection(3); // Checks MTAP port 3 (Memory Card Port 2) For MTAP Connection
     
 	if(rv == 1)
-        scr_printf("Memory Card Port 2: Multi-tap Detected! \n");
-    else
-    {
-        scr_printf("Memory Card Port 2: Multi-tap is Not Connected. \n");
-        mtapPortClose(3);
+	{
+		scr_printf("Memory Card Port 2: Multi-tap Detected! \n");
+	}
+	else
+	{
+		scr_printf("Memory Card Port 2: Multi-tap is Not Connected. \n");
+		mtapPortClose(3);
 	}
 }
 // Closes MTAP Ports 2 and 3
