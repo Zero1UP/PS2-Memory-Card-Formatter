@@ -58,7 +58,7 @@ static int mc_Type, mc_Free, mc_Format;
 
 //Strings
 	char *appName = "Mass Format Utility ";
-	char *appVer = "Version 0.4 ";
+	char *appVer = "Version 0.5 ";
 	char *appAuthor = "Created By: 1UP & Based_Skid. Copyright \xa9 2018\n";
 	char *help = "Special thanks to SP193 for all the help! \n";
 	char *appNotice = "Notice: This May Not be Compatible With all PS2 Models!\n";
@@ -296,7 +296,7 @@ int memoryCardCheckAndFormat(int format)
 				mcSync(0, NULL, &ret);
 				if (ret == 0)
 				{
-					scr_printf("Memory Card In Port 0 Formatted!\n");
+					scr_printf("Memory Card In Port 0 Formatted!\n\n");
 				}
 				else
 				{
