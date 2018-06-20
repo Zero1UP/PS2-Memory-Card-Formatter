@@ -67,8 +67,10 @@ static int mc_Type, mc_Free, mc_Format;
 	char *txtsqrBtn = "-Press Square to Poweroff the console.\n";
 	char *txtcrossBtn = "-Press X to Exit and Reboot.\n";
 	char *osdmsg = "Exiting to OSDSYS\n";
-	char *appFail = "An Application Failure Has Occurred.\n";
+	char *appFail = "Application Failure!\n";
 	char *modloadfail = "Failed to load module: ";
+	
+	
 
 int main(int argc, char *argv[]) {
 
@@ -115,7 +117,7 @@ int main(int argc, char *argv[]) {
 			scr_clear();
 			scr_printf(appName);
 			scr_printf(" \n");
-			gotoOSDSYS();
+			gotoOSDSYS(0);
 		}
 		
 		if(new_pad & PAD_SQUARE) 
@@ -188,8 +190,8 @@ int LoadIRX()
 	a = SifExecModuleBuffer(&poweroff_irx, size_poweroff_irx, 0, NULL, &a);
 	if (a < 0 )
 	{
-		scr_printf(" Could not load POWEROFF.IRX! %d\n", a);
-		return -1;
+    scr_printf(" Could not load POWEROFF.IRX! %d\n", a);
+	return -1;
 	}
 
 	printf(" Loaded POWEROFF.IRX!\n");
@@ -229,7 +231,7 @@ void LoadModules(void)
 
 int memoryCardCheckAndFormat(int format)
 {
-	mtapDetect(); //Checking Multi-Tap Connection Again In Case Multi-tap Connection is made
+	mtapDetect();
 	scr_clear();
 	
 	int rv,portNumber,slotNumber,ret;
@@ -613,43 +615,40 @@ void mtapDetect()
 
 void gotoOSDSYS(int sc)
 {
-	if (sc == 1)
-	{
-		scr_printf(appFail);
-		scr_printf(modloadfail);
-		scr_printf("XSIO2MAN\n");
-	}
-	if (sc == 2)
-	{
-		scr_printf(appFail);
-		scr_printf(modloadfail);
-		scr_printf("XMTAPMAN\n");
-	}
-	if (sc == 3)
-	{
-		scr_printf(appFail);
-		scr_printf(modloadfail);
-		scr_printf("XPADMAN\n");
-	}
-	if (sc == 4)
-	{
-		scr_printf(appFail);
-		scr_printf(modloadfail);
-		scr_printf("XMCMAN\n");
-	}
-	if (sc == 5)
-	{
-		scr_printf(appFail);
-		scr_printf(modloadfail);
-		scr_printf("XMCSERV\n");
-	}
-	if (sc == 6)
-	{
-		scr_printf(appFail);
-		scr_printf("Failed to Init libmc\n");
-	}
-	ResetIOP();
-	scr_printf(osdmsg);
-	sleep(3);
-	LoadExecPS2("rom0:OSDSYS", 0, NULL);
+    if (sc != 0)
+    {
+       scr_printf(appFail);
+        if(sc ==1 || sc ==2 || sc ==3 || sc ==4 || sc ==5 || sc ==6)
+        {
+            scr_printf(modloadfail);
+        }
+        if (sc == 1)
+        {
+            scr_printf("XSIO2MAN\n");
+        }
+        if (sc == 2)
+        {
+            scr_printf("XMTAPMAN\n");
+        }
+        if (sc == 3)
+        {
+            scr_printf("XPADMAN\n");
+        }
+        if (sc == 4)
+        {
+            scr_printf("XMCMAN\n");
+        }
+        if (sc == 5)
+        {
+            scr_printf("XMCSERV\n");
+        }
+        if (sc == 6)
+        {
+            scr_printf("Failed to Init libmc\n");
+        }
+    }
+    ResetIOP();
+    scr_printf(osdmsg);
+    sleep(3);
+    LoadExecPS2("rom0:OSDSYS", 0, NULL);
 }
