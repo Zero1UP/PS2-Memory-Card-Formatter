@@ -646,9 +646,9 @@ void gotoOSDSYS(int sc)
         {
             scr_printf("Failed to Init libmc\n");
         }
+	sleep(5);
     }
     ResetIOP();
     scr_printf(osdmsg);
-    sleep(3);
     LoadExecPS2("rom0:OSDSYS", 0, NULL);
 }
