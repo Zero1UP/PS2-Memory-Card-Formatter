@@ -10,7 +10,6 @@
 #include <string.h>
 #include "libpad.h"
 #include <debug.h>
-//#include "libmtap.h"
 #include <libpwroff.h>
 #include <iopcontrol.h>
 #include <iopheap.h>
@@ -58,7 +57,7 @@ static int mc_Type, mc_Free, mc_Format;
 
 //Strings
 	char *appName = "Mass Format Utility ";
-	char *appVer = "Version 0.5 ";
+	char *appVer = "Version 0.6 ";
 	char *appAuthor = "Created By: 1UP & Based_Skid. Copyright \xa9 2018\n";
 	char *help = "Special thanks to SP193 for all the help! \n";
 	char *appNotice = "Notice: This May Not be Compatible With all PS2 Models!\n";
@@ -68,11 +67,12 @@ static int mc_Type, mc_Free, mc_Format;
 	char *txtsqrBtn = "-Press Square to Poweroff the console.\n";
 	char *txtcrossBtn = "-Press X to Exit and Reboot.\n";
 	char *osdmsg = "Exiting to OSDSYS\n";
+	char *appFail = "An Application Failure Has Occurred.\n";
+	char *modloadfail = "Failed to load module: ";
 
 int main(int argc, char *argv[]) {
 
 	ResetIOP();
-	int ret;
 	
 	// initialize
 	initialize();
@@ -82,8 +82,7 @@ int main(int argc, char *argv[]) {
 
 	if (mcInit(MC_TYPE_XMC) < 0) 
 	{
-		printf("Failed to Init libmc\n");
-		gotoOSDSYS(1);
+		gotoOSDSYS(6);
 	}
 
 	while (1)
@@ -144,7 +143,7 @@ void menu_Text(void)
 	scr_printf(txtcrossBtn);
 	scr_printf(txtsqrBtn);
 	scr_printf(" \n");
-	mtapConnect();
+	mtapDetect();
 }
 
 void initialize(void)
@@ -184,15 +183,13 @@ void initialize(void)
 int LoadIRX()
 {
 	int a;
-	sbv_patch_enable_lmb();
-	sbv_patch_disable_prefix_check();
 	printf(" Loading IRX!\n");
 
 	a = SifExecModuleBuffer(&poweroff_irx, size_poweroff_irx, 0, NULL, &a);
 	if (a < 0 )
 	{
-        scr_printf(" Could not load POWEROFF.IRX! %d\n", a);
-	return -1;
+		scr_printf(" Could not load POWEROFF.IRX! %d\n", a);
+		return -1;
 	}
 
 	printf(" Loaded POWEROFF.IRX!\n");
@@ -206,37 +203,33 @@ void LoadModules(void)
 	
 	ret = SifLoadModule("rom0:XSIO2MAN", 0, NULL);
 	if (ret < 0) {
-		printf("Failed to load module: XSIO2MAN");
 		gotoOSDSYS(1);
 	}
 		
 	ret = SifLoadModule("rom0:XMTAPMAN", 0, NULL);
 	if (ret < 0) {
-		printf("Failed to load module: XMTAPMAN");
-		gotoOSDSYS(1);
+		gotoOSDSYS(2);
 	}
 	
 	ret = SifLoadModule("rom0:XPADMAN", 0, NULL);
 	if (ret < 0) {
-		printf("Failed to load module: XPADMAN");
-		gotoOSDSYS(1);
+		gotoOSDSYS(3);
 	}
 	ret = SifLoadModule("rom0:XMCMAN", 0, NULL);
 	if (ret < 0) {
-		printf("Failed to load module: XMCMAN");
-		gotoOSDSYS(1);
+		gotoOSDSYS(4);
 	}
 
 	ret = SifLoadModule("rom0:XMCSERV", 0, NULL);
 	if (ret < 0) {
-		printf("Failed to load module: XMCSERV");
-		gotoOSDSYS(1);
+		gotoOSDSYS(5);
 	}
 	
 }
 
 int memoryCardCheckAndFormat(int format)
 {
+	mtapDetect(); //Checking Multi-Tap Connection Again In Case Multi-tap Connection is made
 	scr_clear();
 	
 	int rv,portNumber,slotNumber,ret;
@@ -309,7 +302,8 @@ int memoryCardCheckAndFormat(int format)
 			scr_printf("Memory Card Port 0 not detected!\n\n");
 		}
 	}
-	//Logical Port 2
+	
+	// Port 2
 	rv = mtapGetConnection(3);
 	if(rv == 1) 
 	{
@@ -528,10 +522,12 @@ void ResetIOP()
 	SifInitRpc(0);           //Initialize SIFRPC and SIFCMD.
 	SifLoadFileInit();       //Initialize LOADFILE RPC.
 	fioInit();               //Initialize FILEIO RPC.
+	//SBV Patches
+	sbv_patch_enable_lmb();
+	sbv_patch_disable_prefix_check();
 }
 
 
-void mtapConnect()
 //////////////////////////////////////////////////////////////////////
 //                        Multi-tap Code                           //
 ////////////////////////////////////////////////////////////////////
@@ -584,55 +580,76 @@ mtapPortOpen(3); >> Memory Card Port 2 (Logical MC Port 2)
  2D: PORT = 1,SLOT = 3
 ====================== 
  */
+ 
+// Detects If Multi-tap is Connected. Closes Multi-tap Port(s) if Multi-tap(s) are not Connected
+void mtapDetect()
 {
-	closeMTAPports(); //In Case Multi-tap(s) are Connected or removed After the App has been started.
-	int rv;
-	mtapPortOpen(2);
-	mtapPortOpen(3);
-
-	scr_printf("Multi-tap Status: \n");
-	//Checks For Mtap Connection on Physical Memory Card Slot 1
-	rv = mtapGetConnection(2); // Checks MTAP port 2 (Memory Card Port 1) For MTAP Connection
-	
-	if(rv == 1)
-	{
-		scr_printf("Memory Card Port 0: Multi-tap Detected! \n");
-	}
-	else
+    int mt;
+    scr_printf("Multi-tap Status: \n");
+    mtapPortOpen(2); // Checks MTAP port 2 (Memory Card Port 1) For MTAP Connection
+    mt = mtapGetConnection(2);
+    if(mt == 1)
     {
-		scr_printf("Memory Card Port 0: Multi-tap is Not Connected. \n");
-		mtapPortClose(2); //Closes The Multitap Port if The Multitap Is Not Present
+        scr_printf("Memory Card Port 0: Multi-tap Detected! \n");
     }
-	
-	
-	//Checks For Mtap Connection on Physical Memory Card Slot 2
-	rv = mtapGetConnection(3); // Checks MTAP port 3 (Memory Card Port 2) For MTAP Connection
-    
-	if(rv == 1)
-	{
-		scr_printf("Memory Card Port 1: Multi-tap Detected! \n");
-	}
-	else
+    else
     {
-		scr_printf("Memory Card Port 1: Multi-tap is Not Connected. \n");
-		mtapPortClose(3);
-	}
+        scr_printf("Memory Card Port 0: Multi-tap is Not Connected. \n");
+        mtapPortClose(2); //Closes The Multitap Port if The Multitap Is Not Present
+    }
+    
+    mtapPortOpen(3);
+    mt = mtapGetConnection(3); // Checks MTAP port 3 (Memory Card Port 2) For MTAP Connection
+    if(mt == 1)
+    {
+        scr_printf("Memory Card Port 1: Multi-tap Detected! \n");
+    }
+    else
+    {
+        scr_printf("Memory Card Port 1: Multi-tap is Not Connected. \n");
+        mtapPortClose(3); //Closes The Multitap Port if The Multitap Is Not Present
+    }
 }
-// Closes MTAP Ports 2 and 3
-void closeMTAPports()
+
+void gotoOSDSYS(int sc)
 {
-	mtapPortClose(2);
-	mtapPortClose(3);
-}
-void gotoOSDSYS(int failure)
-{
-	if (failure == 1)
+	if (sc == 1)
 	{
-		scr_printf("An Application Failure Has Occurred.\n");
+		scr_printf(appFail);
+		scr_printf(modloadfail);
+		scr_printf("XSIO2MAN\n");
+	}
+	if (sc == 2)
+	{
+		scr_printf(appFail);
+		scr_printf(modloadfail);
+		scr_printf("XMTAPMAN\n");
+	}
+	if (sc == 3)
+	{
+		scr_printf(appFail);
+		scr_printf(modloadfail);
+		scr_printf("XPADMAN\n");
+	}
+	if (sc == 4)
+	{
+		scr_printf(appFail);
+		scr_printf(modloadfail);
+		scr_printf("XMCMAN\n");
+	}
+	if (sc == 5)
+	{
+		scr_printf(appFail);
+		scr_printf(modloadfail);
+		scr_printf("XMCSERV\n");
+	}
+	if (sc == 6)
+	{
+		scr_printf(appFail);
+		scr_printf("Failed to Init libmc\n");
 	}
 	ResetIOP();
 	scr_printf(osdmsg);
 	sleep(3);
 	LoadExecPS2("rom0:OSDSYS", 0, NULL);
-
 }
