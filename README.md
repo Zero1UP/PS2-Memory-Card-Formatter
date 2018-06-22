@@ -31,14 +31,30 @@ This App May Not Be Compatible With Some Models of the PS2.
 
 ##Supported Multi-taps
 
--- OEM Equipment
+Note: Some Multi-taps Do Not have all 4 Memory Card slots, The List Below Contains Multi-tap Models that have 4 Memory Card Slots Unless Otherwise noted.
 
-Sony SCPH-10090 - Fat PS2
-Sony SCPH-XXXXX - Slim PS2
+We Are Working to Expand This List
 
--- Aftermarket
+If You Have a Model That is Not Listed here and It is working Please Let Us know and please provide pictures if possible
 
-Intec Multitap-Stand PS2-7610 -Supports Slim and Fat PS2
+### OEM Equipment
+
+Sony SCPH-10090 - Fat PS2 (can be modified to fit slim ps2)
+
+Sony SCPH-70120 - Slim PS2 
+
+### Aftermarket
+
+Intec Multitap-Stand Model:PS2-7610 -Supports Slim and Fat PS2 (stand only fits sim ps2, Multi-tap connector Fits Slim and Fat)
+
+Intec Multiplayer Adapter With Built in DVD remote and AV Multi Switch Model:PS2-7315A - Fat PS2
+
+Performance Multiplayer Adapter 4/5 player Model:M4100 - Fat PS2 (E Slot is Controller only)
+
+Datel Multiplayer Adapter Model:PS2490D - Fat PS2
+
+
+
 
 
 
