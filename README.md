@@ -29,6 +29,19 @@ The App Will automatically Recognize a Multi-tap if it is connected when it is l
 
 This App May Not Be Compatible With Some Models of the PS2.
 
+##Supported Multi-taps
+
+-- OEM Equipment
+
+Sony SCPH-10090 - Fat PS2
+Sony SCPH-XXXXX - Slim PS2
+
+-- Aftermarket
+
+Intec Multitap-Stand PS2-7610 -Supports Slim and Fat PS2
+
+
+
 ## Notice
 This Program Was Built with The PS2DEV sdk and has utilized sample code from it https://github.com/ps2dev/ps2sdk
 
