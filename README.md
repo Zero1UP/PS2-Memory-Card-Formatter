@@ -29,7 +29,7 @@ The App Will automatically Recognize a Multi-tap if it is connected when it is l
 
 This App May Not Be Compatible With Some Models of the PS2.
 
-##Supported Multi-taps
+## Supported Multi-taps
 
 Note: Some Multi-taps Do Not have all 4 Memory Card slots, The List Below Contains Multi-tap Models that have 4 Memory Card Slots Unless Otherwise noted.
 
