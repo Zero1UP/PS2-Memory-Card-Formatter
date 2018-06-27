@@ -229,7 +229,7 @@ void LoadModules(void)
 		ret = SifLoadModule("rom0:XMTAPMAN", 0, NULL);
 		if (ret < 0) 
 		{
-			gotoOSDSYS(3);
+			gotoOSDSYS(2);
 		}
 	}
 	
