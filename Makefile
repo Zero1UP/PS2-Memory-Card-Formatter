@@ -4,7 +4,7 @@ EE_BIN_PACKED = mcF-packed.elf
 # C File Objects
 EE_OBJS = main.o
 # SW Module Objects
-EE_OBJS += freesio2.o freepad.o freemtap.o
+EE_OBJS += freesio2.o freepad.o freemtap.o mcman.o mcsrv.o
 # Other IRX
 EE_OBJS += poweroff.o
 ####
@@ -42,6 +42,11 @@ freepad.s:
 freemtap.s:
 	bin2s $(PS2SDK)/iop/irx/freemtap.irx freemtap.s mtapman
 
-	
+mcman.s:
+	bin2s $(PS2SDK)/iop/irx/mcman.irx mcman.s mcman
+
+mcsrv.s:
+	bin2s $(PS2SDK)/iop/irx/mcserv.irx mcsrv.s mcserv
+ 
 include $(PS2SDK)/samples/Makefile.pref
 include $(PS2SDK)/samples/Makefile.eeglobal
