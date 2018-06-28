@@ -30,7 +30,7 @@ The Button Controls can be used at any time, After a Format or Viewing the Card 
 
 The App Will automatically Recognize a Multi-tap if it is connected when it is loaded, If you Connect a Multi-tap After the app has been loaded press triangle to refresh the multi-tap status and the app will utilize the additional slots.
 
-This App May Not Be Compatible With Some Models of the PS2.
+This App Utilizes Software Modules and should be compatible with all models. Multi-tap support may not work on all consoles
 
 Special Thanks to SP193 For Providing Email Support and Taking the Time to Explain Things in Detail.
 
