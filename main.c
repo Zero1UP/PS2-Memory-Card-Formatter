@@ -19,11 +19,15 @@ extern void freesio2;
 extern void freepad;
 extern void poweroff;
 extern void mtapman;
+extern void mcman;
+extern void mcserv;
 
 extern u32 size_poweroff;
 extern u32 size_freesio2;
 extern u32 size_freepad;
 extern u32 size_mtapman;
+extern u32 size_mcman;
+extern u32 size_mcserv;
 //PAD VARIABLES
 //check for multiple definitions
 #define DEBUG
@@ -64,7 +68,7 @@ static int mc_Type, mc_Free, mc_Format;
 
 //Strings
 	char *appName = "Mass Format Utility ";
-	char *appVer = "Version 0.7 ";
+	char *appVer = "Version 1.0 ";
 	char *appAuthor = "Created By: 1UP & Based_Skid. Copyright \xa9 2018\n";
 	char *help = "Special thanks to SP193 for all the help! \n";
 	char *appNotice = "Notice: This May Not be Compatible With all PS2 Models!\n";
@@ -208,7 +212,7 @@ int LoadIRX()
 
 void LoadModules(void)
 {
-	int ret,rv;
+	int ret;
 	
 	ret = SifExecModuleBuffer(&freesio2, size_freesio2, 0, NULL, &ret);
 	if (ret < 0) 
@@ -244,17 +248,31 @@ void LoadModules(void)
 		}
 	}
 	
-	ret = SifLoadModule("rom0:XMCMAN", 0, NULL);
-	if (ret < 0) {
-		gotoOSDSYS(4);
-	}
-
-	ret = SifLoadModule("rom0:XMCSERV", 0, NULL);
-	if (ret < 0) {
-		gotoOSDSYS(5);
+	ret = SifExecModuleBuffer(&mcman, size_mcman, 0, NULL, &ret);
+	if (ret < 0) 
+	{
+		printf("Failed to Load mcman sw module");
+		ret = SifLoadModule("rom0:XMCMAN", 0, NULL);
+		if (ret < 0) 
+		{
+			gotoOSDSYS(4);
+		}
 	}
 	
-}
+	ret = SifExecModuleBuffer(&mcserv, size_mcserv, 0, NULL, &ret);
+	if (ret < 0) 
+	{
+		printf("Failed to Load mcserv sw module");
+		ret = SifLoadModule("rom0:XMCSERV", 0, NULL);
+		if (ret < 0) 
+		{
+			gotoOSDSYS(5);
+		}
+	}
+ 
+	}
+	
+
 
 int memoryCardCheckAndFormat(int format)
 {
