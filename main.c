@@ -13,8 +13,21 @@
 #include <libpwroff.h>
 #include <iopcontrol.h>
 #include <iopheap.h>
+#include "libmtap.h"
 
+extern void freesio2;
+extern void freepad;
+extern void poweroff;
+extern void mtapman;
+extern void mcman;
+extern void mcserv;
 
+extern u32 size_poweroff;
+extern u32 size_freesio2;
+extern u32 size_freepad;
+extern u32 size_mtapman;
+extern u32 size_mcman;
+extern u32 size_mcserv;
 //PAD VARIABLES
 //check for multiple definitions
 #define DEBUG
@@ -31,9 +44,6 @@
 #error ROM_PADMAN or NEW_PADMAN must be defined!
 #endif
 
-
-extern unsigned char poweroff_irx;
-extern unsigned int size_poweroff_irx;
 
 //pad buffer
 static char padBuf[256] __attribute__((aligned(64)));
@@ -52,12 +62,13 @@ void LoadModules(void);
 void initialize(void);
 int LoadIRX();
 
+
 #define TYPE_XMC
 static int mc_Type, mc_Free, mc_Format;
 
 //Strings
 	char *appName = "Mass Format Utility ";
-	char *appVer = "Version 0.5 ";
+	char *appVer = "Version 1.0 ";
 	char *appAuthor = "Created By: 1UP & Based_Skid. Copyright \xa9 2018\n";
 	char *help = "Special thanks to SP193 for all the help! \n";
 	char *appNotice = "Notice: This May Not be Compatible With all PS2 Models!\n";
@@ -187,7 +198,7 @@ int LoadIRX()
 	int a;
 	printf(" Loading IRX!\n");
 
-	a = SifExecModuleBuffer(&poweroff_irx, size_poweroff_irx, 0, NULL, &a);
+	a = SifExecModuleBuffer(&poweroff, size_poweroff, 0, NULL, &a);
 	if (a < 0 )
 	{
     scr_printf(" Could not load POWEROFF.IRX! %d\n", a);
@@ -203,31 +214,65 @@ void LoadModules(void)
 {
 	int ret;
 	
-	ret = SifLoadModule("rom0:XSIO2MAN", 0, NULL);
-	if (ret < 0) {
-		gotoOSDSYS(1);
+	ret = SifExecModuleBuffer(&freesio2, size_freesio2, 0, NULL, &ret);
+	if (ret < 0) 
+	{
+		printf("Failed to Load freesio2 sw module");
+		ret = SifLoadModule("rom0:XSIO2MAN", 0, NULL);
+		if (ret < 0) 
+		{
+			gotoOSDSYS(1);
+		}
 	}
-		
-	ret = SifLoadModule("rom0:XMTAPMAN", 0, NULL);
-	if (ret < 0) {
-		gotoOSDSYS(2);
+			
+	
+	ret = SifExecModuleBuffer(&mtapman, size_mtapman, 0, NULL, &ret);
+	if (ret < 0) 
+	{
+		printf("Failed to Load freeMTAP sw module");
+		ret = SifLoadModule("rom0:XMTAPMAN", 0, NULL);
+		if (ret < 0) 
+		{
+			gotoOSDSYS(2);
+		}
 	}
 	
-	ret = SifLoadModule("rom0:XPADMAN", 0, NULL);
-	if (ret < 0) {
-		gotoOSDSYS(3);
+	ret = SifExecModuleBuffer(&freepad, size_freepad, 0, NULL, &ret);
+	if (ret < 0) 
+	{
+		printf("Failed to Load freepad sw module");
+		ret = SifLoadModule("rom0:XPADMAN", 0, NULL);
+		if (ret < 0) 
+		{
+			gotoOSDSYS(3);
+		}
 	}
-	ret = SifLoadModule("rom0:XMCMAN", 0, NULL);
-	if (ret < 0) {
-		gotoOSDSYS(4);
+	
+	ret = SifExecModuleBuffer(&mcman, size_mcman, 0, NULL, &ret);
+	if (ret < 0) 
+	{
+		printf("Failed to Load mcman sw module");
+		ret = SifLoadModule("rom0:XMCMAN", 0, NULL);
+		if (ret < 0) 
+		{
+			gotoOSDSYS(4);
+		}
 	}
+	
+	ret = SifExecModuleBuffer(&mcserv, size_mcserv, 0, NULL, &ret);
+	if (ret < 0) 
+	{
+		printf("Failed to Load mcserv sw module");
+		ret = SifLoadModule("rom0:XMCSERV", 0, NULL);
+		if (ret < 0) 
+		{
+			gotoOSDSYS(5);
+		}
+	}
+ 
+	}
+	
 
-	ret = SifLoadModule("rom0:XMCSERV", 0, NULL);
-	if (ret < 0) {
-		gotoOSDSYS(5);
-	}
-	
-}
 
 int memoryCardCheckAndFormat(int format)
 {
@@ -562,6 +607,9 @@ Some More Notes
 
 ACCORING TO THE MULTITAP SAMPLE YOU MUST USE XMODULES IN ORDER TO USE THE MULTITAP!
 
+This Application uses the Software module (freemtap.irx).
+We tried to use MCMAN and MCSERV but we were forced to use the X modules
+
 ====Mtap Port Info====
 You DONT have to Open Mulitap Ports 1 & 2 if you are just looking to access the Memory Cards. If you Wanted to Use Controller slots B,C,D on a Multi-tap Then you would need to open the Port
 mtapPortOpen(0); >> Memory Card Port 1 (Logical Controller Port 1)
@@ -615,40 +663,40 @@ void mtapDetect()
 
 void gotoOSDSYS(int sc)
 {
-    if (sc != 0)
-    {
-       scr_printf(appFail);
-        if(sc ==1 || sc ==2 || sc ==3 || sc ==4 || sc ==5 || sc ==6)
-        {
-            scr_printf(modloadfail);
-        }
-        if (sc == 1)
-        {
-            scr_printf("XSIO2MAN\n");
-        }
-        if (sc == 2)
-        {
-            scr_printf("XMTAPMAN\n");
-        }
-        if (sc == 3)
-        {
-            scr_printf("XPADMAN\n");
-        }
-        if (sc == 4)
-        {
-            scr_printf("XMCMAN\n");
-        }
-        if (sc == 5)
-        {
-            scr_printf("XMCSERV\n");
-        }
-        if (sc == 6)
-        {
-            scr_printf("Failed to Init libmc\n");
-        }
-	sleep(5);
-    }
-    ResetIOP();
-    scr_printf(osdmsg);
-    LoadExecPS2("rom0:OSDSYS", 0, NULL);
+	if (sc != 0)
+	{
+		scr_printf(appFail);
+		if(sc ==1 || sc ==2 || sc ==3 || sc ==4 || sc ==5 || sc ==6)
+		{
+			scr_printf(modloadfail);
+		}
+		if (sc == 1)
+		{
+			scr_printf("XSIO2MAN\n");
+		}
+		if (sc == 2)
+		{
+			scr_printf("XMTAPMAN\n");
+		}
+		if (sc == 3)
+		{
+			scr_printf("XPADMAN\n");
+		}
+		if (sc == 4)
+		{
+			scr_printf("XMCMAN\n");
+		}
+		if (sc == 5)
+		{
+			scr_printf("XMCSERV\n");
+		}
+		if (sc == 6)
+		{
+			scr_printf("Failed to Init libmc\n");
+		}
+		sleep(5);
+	}
+	ResetIOP();
+	scr_printf(osdmsg);
+	LoadExecPS2("rom0:OSDSYS", 0, NULL);
 }
