@@ -1,3 +1,10 @@
+/*
+			Mass Format Utility
+	            Written By 1UP & Based Skid
+		Licensed Under AFL 3.0
+			Copyright 2018 
+*/
+
 #include <tamtypes.h>
 #include <errno.h>
 #include <sbv_patches.h>
@@ -14,6 +21,9 @@
 #include <iopcontrol.h>
 #include <iopheap.h>
 #include "libmtap.h"
+
+//MtapHelper
+#include "mtaphelper.h"
 
 extern void freesio2;
 extern void freepad;
@@ -68,7 +78,7 @@ static int mc_Type, mc_Free, mc_Format;
 
 //Strings
 	char *appName = "Mass Format Utility ";
-	char *appVer = "Version 1.0 ";
+	char *appVer = "Version 1.1 ";
 	char *appAuthor = "Created By: 1UP & Based_Skid. Copyright \xa9 2018\n";
 	char *help = "Special thanks to SP193 for all the help! \n";
 	char *appNotice = "Notice: This May Not be Compatible With all PS2 Models!\n";
@@ -156,7 +166,8 @@ void menu_Text(void)
 	scr_printf(txtcrossBtn);
 	scr_printf(txtsqrBtn);
 	scr_printf(" \n");
-	mtapDetect();
+	scr_printf("Multi-tap Status: \n");
+	mtGO(); 
 }
 
 void initialize(void)
@@ -283,8 +294,8 @@ void LoadModules(void)
 
 int memoryCardCheckAndFormat(int format)
 {
-	mtapDetect();
-	scr_clear();
+	mtGO(); // Check Multitap Status Before We do Anything Otherwise you Can End up Formatting the Same card 4 Times Over
+	scr_clear(); // Clear The Screen to Hide output of mtGO()
 	
 	int rv,portNumber,slotNumber,ret;
 	rv = mtapGetConnection(2);
@@ -582,192 +593,8 @@ void ResetIOP()
 }
 
 
-//////////////////////////////////////////////////////////////////////
-//                        Multi-tap Code                           //
-////////////////////////////////////////////////////////////////////
-/*
-This Portion Should Serve as Either A supplemental piece of information and/or correction to the original Sample Code
-Located Here: https://github.com/ps2dev/ps2sdk/tree/master/ee/rpc/multitap
-Multitap Sample Code Updated and Corrected by Based_Skid
 
-//
-A Few Things To Note: 
-The Original Sample Has the C & D Slot Numbers Incorrectly Listed
-The Original Sample Does Not Indicate that Mtap Ports 2 & 3 Exist
-//
 
-MTAP Ports Shouldnt Be Confused With Controller or MC ports
-Meaning that Mtap Port 2 is Still Memory Card Port 0 (Logical Port 1)
-
-Logical Port Refers to the Actual Port on the PS2. (Ports 1 and 2)
-
-Im using the Term Logical port to describe because of the way Ports and Slots are Numbered Regarding Controllers and Memory Cards, and to avoid confusion
-
-The ASCII Reference Art Below Is taken From the PS2DEV Multitap Library Sample AND SOME INFO HAS BEEN ADDED/CORRECTED.
-(The Sample had D and C backwards)
-						
-				     __________[ Port 1, Slot 3 ]
-                                    /    _____[ Port 1, Slot 2 ]
- |------------|                     |   /
- |            |                   |-------|
- |            |                   | D   C |
- |     PS2    |          |--------|       | <- Multi-tap
- |            |          |        | A   B |
- |            |          |        |-------|
- |            |          |          |   \_____ [ Port 1, Slot 1 ]
- |LogicalPort 2 |]---------|          \__________[ Port 1, Slot 0 ]
- |            |
- |LogicalPort 1 |]---[ Port 0, Slot 0 ]
- |            |
- |------------|
-Some More Info
----
-ACCORING TO THE Original MULTITAP SAMPLE it Declares that YOU MUST USE XMODULES IN ORDER TO USE THE MULTITAP, 
-Please Be Advised That You Can Use The Software IRX modules with the Multitap and the Board Secific Xmodules are not Required.
-The Software Modules Are Meant to Be Drop in Replacments for The XModules!
-See The LoadModule Function in This File and Check the Makefile to See How Software Modules Can be Used in Your Project.
----
-===
-A Quick Note about XMODULES: You Should NEVER Use XMODULES in your Own Applications
-X Modules  are Board Specific and Compatibility Across all PS2 Models is Not Guarenteed. 
-This Application uses the Software module (freemtap.irx) for the mutltitap module.
-All of The Modules Loaded in this Application Are The Software Replacement Modules provided by the ps2sdk
-===
-
-====Mtap Port Info====
-++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-//Controller Ports
-mtapPortOpen(0); >> Memory Card Port 1 (Logical Controller Port 1)
-mtapPortOpen(1); >> Memory Card Port 2 (Logical Controller Port 2)
-//Memory Card Ports
-mtapPortOpen(2); >> Memory Card Port 1 (Logical MC Port 1)
-mtapPortOpen(3); >> Memory Card Port 2 (Logical MC Port 2)
-+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
-You DONT have to Open Mulitap Ports 1 & 2 if you are just looking to access the Memory Cards. 
---
-Libmc Works with Cards that are connected to the multitap. 
-There are Some Code Examples Below to Demonstrate The Port,Slot number use
-See LibMC sample for more information about working with memory cards: https://github.com/ps2dev/ps2sdk/blob/master/ee/rpc/memorycard/samples/mc_example.c#L78 
-The Calls Below are modified slightly from the Libmc example and are to Demonstrate how the port and slot are targeted.
---
-==
-mcGetInfo(0, 0, &mc_Type, &mc_Free, &mc_Format); << This would Target the 1A Port on the Multitap (port 0, slot 0)
-
-mcGetInfo(0, 1, &mc_Type, &mc_Free, &mc_Format); << 1B Port
-
-mcGetInfo(0, 2, &mc_Type, &mc_Free, &mc_Format); << 1B Port
-
-mcGetInfo(0, 3, &mc_Type, &mc_Free, &mc_Format); << 1B Port
-
-mcGetInfo(1, 0, &mc_Type, &mc_Free, &mc_Format); << 2A Port
-
-mcGetInfo(1, 1, &mc_Type, &mc_Free, &mc_Format); << 2B Port
-
-mcGetInfo(1, 2, &mc_Type, &mc_Free, &mc_Format); << 2C Port
-
-mcGetInfo(1, 3, &mc_Type, &mc_Free, &mc_Format); << 2D Port
-==
---
-
---
-======================
-
-====Port,Slot Info====
- 1A: PORT = 0,SLOT = 0
- 1B: PORT = 0,SLOT = 1
- 1C: PORT = 0,SLOT = 2
- 1D: PORT = 0,SLOT = 3
- 
- 2A: PORT = 1,SLOT = 0
- 2B: PORT = 1,SLOT = 1
- 2C: PORT = 1,SLOT = 2
- 2D: PORT = 1,SLOT = 3
-====================== 
-If you Wanted to Use Controller slots B,C,D on a Multi-tap 
-Then you would need to open the Mtap port that corresponds with the controller port
-
-Example code (Modified From Original Sample Provided)
-------------
-
- 1. Loading the required IRX files
-	The X Module Code Below is For Reference to the old Sample and should not be used.
-    	See Line 213 to See The Required IRX Modules and some Code to load them. (Also see the MakeFile)
-
-    // NOTE: X** modules must be used! <<< NOT TRUE!
-    //SifLoadModule("rom0:XSIO2MAN", 0, NULL);
-    //SifLoadModule("rom0:XMTAPMAN", 0, NULL);
-    //SifLoadModule("rom0:XPADMAN", 0, NULL);
-   
- 2. Init, opening ports
-
-    // Init libmtap
-    mtapInit();
-
-    // Init libpad
-    padInit(0);
-
-    // Open ports
-    mtapPortOpen(0);
-    mtapPortOpen(1);
-
- 3. Check connections
-
-    rv = mtapGetConnection(0);
-    if(rv == 1)
-        printf("- Multitap exists on slot 0\n");
-    else
-    {
-        printf("- No multitap exists on slot 0\n");
-        mtapPortClose(0);
-    }
-
-    rv = mtapGetConnection(1);
-    if(rv == 1)
-        printf("- Multitap exists on slot 1\n");
-    else
-    {
-        printf("- No multitap exists on slot 1\n");
-        mtapPortClose(1);
-    }
-
- 4. Open the controllers
-
-    padPortOpen(0, 0, padBuf1A);
-    padPortOpen(0, 1, padBuf1B);
-    padPortOpen(0, 2, padBuf1C);
-    padPortOpen(0, 3, padBuf1D);
-
- */
- 
-// Detects If Multi-tap is Connected. Closes Multi-tap Port(s) if Multi-tap(s) are not Connected
-void mtapDetect()
-{
-    int mt;
-    scr_printf("Multi-tap Status: \n");
-    mtapPortOpen(2); // Checks MTAP port 2 (Memory Card Port 1) For MTAP Connection
-    mt = mtapGetConnection(2);
-    if(mt == 1)
-    {
-        scr_printf("Memory Card Port 0: Multi-tap Detected! \n");
-    }
-    else
-    {
-        scr_printf("Memory Card Port 0: Multi-tap is Not Connected. \n");
-        mtapPortClose(2); //Closes The Multitap Port if The Multitap Is Not Connected
-    }
-    
-    mtapPortOpen(3);
-    mt = mtapGetConnection(3); // Checks MTAP port 3 (Memory Card Port 2) For MTAP Connection
-    if(mt == 1)
-    {
-        scr_printf("Memory Card Port 1: Multi-tap Detected! \n");
-    }
-    else
-    {
-        scr_printf("Memory Card Port 1: Multi-tap is Not Connected. \n");
-        mtapPortClose(3); //Closes The Multitap Port if The Multitap Is Not Connected
-    }
-}
 
 void gotoOSDSYS(int sc)
 {
