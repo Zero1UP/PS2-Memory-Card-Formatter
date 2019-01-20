@@ -8,6 +8,3 @@ services:
 script:
   - docker run -it --rm -v "$PWD:/src" mlafeldt/ps2dev make install
 
-branches:
-  only:
-    - master
