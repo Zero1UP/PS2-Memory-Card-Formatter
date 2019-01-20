@@ -13,4 +13,3 @@ char *txtstartBtn = "-Press START to Format All Connected Memory Cards.\n";
 char *txttriangleBtn = "-Press TRIANGLE to Refresh Status and Clear Output.\n";
 char *txtsqrBtn = "-Press Square to Poweroff the console.\n";
 char *txtcrossBtn = "-Press X to Exit and Reboot.\n";
-
