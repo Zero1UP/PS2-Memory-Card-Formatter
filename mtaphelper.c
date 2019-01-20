@@ -24,14 +24,13 @@ void mtGO()
 {
 	int MTPT;
 	
-	mtOpenV();
 	
 	// Close All MTAP Ports Automatically if This Function has Already Been Called
 	if(MtapOPEN == 1)
 	{
 		mtCloseP();
 	}
-	
+	mtOpenV();
 	for  (MTPT =0; MTPT<4; MTPT++)
 	{
 		mtDetect(MTPT);
