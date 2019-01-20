@@ -6,5 +6,5 @@ services:
   - docker
 
 script:
-  - docker run -it --rm -v "$PWD:/src" mlafeldt/ps2dev make install
+  - docker run -it --rm -v "$PWD:/src" mlafeldt/ps2dev make
 
