@@ -4,7 +4,7 @@ EE_BIN_PACKED = mcF-packed.elf
 # C File Objects
 EE_OBJS = main.o
 # SW Module Objects
-EE_OBJS += freesio2.o freepad.o freemtap.o mcman.o mcsrv.o
+EE_OBJS += freesio2.o freepad.o freemtap.o mcman.o mcsrv.o mtaphelper.o
 # Other IRX
 EE_OBJS += poweroff.o
 ####
