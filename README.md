@@ -1,4 +1,5 @@
-# Mass Format utility
+# Mass Format utility [![Build Status](https://travis-ci.org/Based-Skid/Mass-Format-Utility-PS2.svg?branch=master)](https://travis-ci.org/Based-Skid/Mass-Format-Utility-PS2)
+
 Created by: 1UP & Based_Skid 
 
 Copyright 2018
