@@ -1,4 +1,5 @@
-# Mass Format utility
+# Mass Format utility [![Build Status](https://travis-ci.org/Based-Skid/Mass-Format-Utility-PS2.svg?branch=master)](https://travis-ci.org/Based-Skid/Mass-Format-Utility-PS2)
+
 Created by: 1UP & Based_Skid 
 
 Copyright 2018
@@ -32,7 +33,7 @@ The App Will automatically Recognize a Multi-tap if it is connected when it is l
 
 This App Utilizes Software Modules and should be compatible with all models. Multi-tap support may not work on all consoles
 
-Special Thanks to SP193 For Providing Email Support and Taking the Time to Explain Things in Detail.
+Special Thanks to SP193 For Taking the Time to Explain Things in Detail.
 
 ### Port Slot Info
 
